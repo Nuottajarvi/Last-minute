@@ -28,11 +28,9 @@
     .hh {
         height: 100px;
         transform: rotate(89.5deg) translate(270%, 0%);
-        transform-origin: bottom;
     }
     .mh {
         transform: rotate(-6deg);
-        transform-origin: bottom;
     }
     .sh {
         background-color: red;
@@ -102,10 +100,10 @@
         height: 0; 
         border-left: 15px solid transparent;
         border-right: 15px solid transparent;
-        border-top: 30px solid #009999;
+        border-top: 30px solid #0AA;
     }
     .q {
-        background-color: #6666FF;
+        background-color: #66F;
     }
     .s {
         width: 0; 
@@ -115,8 +113,23 @@
         border-bottom: 15px solid #ff0;
         margin-top: 10px;
     }
-    .s::before, .s::after {
+    .c{
+        border-radius: 100%;
+        background-color: magenta;
+        margin-left: 20px;
+    }
+    .p {
+        width: 32px;
+        height: 10px;
+        margin-top: 28px;
+        background-color: #44FF44;
+    }
+
+    .c::after, .p::after, .s::after, .s::before {
         content: "";
+        position: absolute;
+    }
+    .s::before, .s::after {
         width: 0; 
         height: 0; 
         border-left: 20px solid transparent;
@@ -125,37 +138,22 @@
         transform: rotate(-35deg);
         margin-left: -20px;
         margin-top: 14px;
-        position: absolute;
     }
     .s::after {  
         transform: rotate(35deg);
     }
-    .c{
-        border-radius: 100%;
-        background-color: magenta;
-        margin-left: 20px;
-    }
     .c::after {
-        content: "";
         width: 25px;
         height: 25px;
         border-radius: 100%;
         background-color: #333;
         margin-left: 12px;
-        position: absolute;
-    }
-    .p {
-        width: 32px;
-        height: 10px;
-        margin-top: 28px;
-        background-color: #44FF44;
     }
     .p::after{
         content: "";
         width: 10px;
         height: 32px;
-        background-color: #44FF44;
-        position: absolute;
+        background-color: #4F4;
         margin-left: 11px;
         margin-top: -11px;
     }
@@ -196,13 +194,8 @@
         src.start();
     }
     D=document
-    g=a=>{
-        console.log(a, " " , D.getElementsByClassName(a)[0]);
-        return D.getElementsByClassName(a)[0];
-    }
+    g=a=>D.getElementsByClassName(a)[0];
     B=D.body;
-    console.log("D", document);
-    console.log("B", document.body);
     C=a=>D.createElement(a);
     S=(a,p,v)=>a.style.setProperty(p,v);
     A=alert
@@ -216,7 +209,6 @@
         console.log(d);
         a=C("DIV");
         CL(a,...d.split(" "));
-        console.log("BODY", B);
         AP(B,a);
         if(i==1||i==2)
             b=C("DIV"),
@@ -228,21 +220,6 @@
             AP(B,b);
     })
     IH(tx[0]);
-
-
-    /*<div class="h f"></div>
-    <div class="h hh">
-        <div id="ar"></div>
-    </div>
-    <div class="h mh">
-        <div id="ar"></div>
-    </div>
-    <div class="h sh"></div>
-    <div class="dt"></div>
-    <p class="tx">Don't get bored now...</p>
-    <!--Game-->
-    <div class="tc"></div>*/
-
     PI=3.14;
     SI=setInterval;
     for(i=0;i++<12;)
@@ -260,6 +237,7 @@
         S(g("sh"),"transform","rotate("+r+"deg)")
         if(r==360)
             w=1,
+            S(g("mh"),"transform","rotate(0deg)"),
             IH("Yay!!!"),
             ad(1),
             rT(),
@@ -296,23 +274,22 @@
     O={i:0,n:""};
     oA=l=>N.filter(n=>!!n.sh&&(l?!n.l:1)).length;
     oT=(d,i,s)=>{
-        sh=C("DIV")
+        sh=C("DIV");
         AP(d,sh);
-        CL(sh,"shape",shm[i])
+        CL(sh,"shape",shm[i]);
         N[i]={l:0,sh};
-        if(!s&&O.n==shm[i]) {
-            H+=15
-            N[i].l=1
-            N[O.i].l=1
-            O.n=null
-            if(oA(0)>11) {
-                H+=100
-                ad();
-                rT();
-                cA()
-                rnd()
-                Sh()
-            }
+        if(!s&&O.n==shm[i]){
+            H+=15;
+            N[i].l=1;
+            N[O.i].l=1;
+            O.n=null;
+            if(oA(0)>11)
+                H+=100,
+                ad(),
+                rT(),
+                cA(),
+                rnd(),
+                Sh();
         }
         else if(!s){
             O.n?H-=20:0;
@@ -326,13 +303,13 @@
         W=1;
     }
     const nfy=(v)=>{
-        v.sh && v.sh.remove();
+        v.sh&&v.sh.remove();
         v.sh=null;
     }
     const cA=a=>{
         N.map(v=>{!!v&&!v.l&&nfy(v)});
         O="";
-        W=false;
+        W=0;
     }
     for(let i=-1;++i<12;) {
         let d=C("DIV")
