@@ -1,0 +1,459 @@
+<html>
+    <body>
+        <style>
+            body {
+                background-color: #CCC;
+            }
+            #txt {
+                font-family: monospace;
+                text-align: center;
+                margin: auto;
+                margin-top: 600px;
+                font-size: 20px;
+            }
+            .numbers {
+                position: fixed;
+                top: 250px;
+                left: 49%;
+                font-size: 30px;
+                font-family: Georgia;
+                color: #000;
+            }
+            .hand {
+                background-color: #000;
+                width: 20px;
+                height: 150px;
+                position: fixed;
+                top: 150px;
+                left: 50%;
+                transform-origin: bottom;
+                filter: drop-shadow(1px 1px 50px #000);
+            }
+            #hourhand {
+                height: 100px;
+                transform: rotate(89.5deg) translate(270%, 0%);
+                transform-origin: bottom;
+            }
+            #minutehand {
+                transform: rotate(-6deg);
+                transform-origin: bottom;
+            }
+            #secondhand {
+                background-color: red;
+                width: 15px;
+            }
+            #arrow {
+                width: 0; 
+                height: 0; 
+                border-left: 30px solid transparent;
+                border-right: 30px solid transparent;
+                border-bottom: 30px solid #000;
+                transform: translate(-33%, -50%);
+                filter: drop-shadow(1px 1px 50px #000);
+            }
+            #dot {
+                width: 45px;
+                height: 45px;
+                background-color: #000;
+                border-radius: 100%;
+                transform: translate(-12px, 60px);
+                filter: drop-shadow(1px 1px 50px #000);
+                position: fixed;
+                top: 220px;
+                left: 50%;
+            }
+            #face {
+                background-color: #FFF;
+                border-radius: 100%;
+                width: 460px;
+                height: 460px;
+                position: fixed;
+                top: 300px;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                border: 20px solid #000;
+                filter: drop-shadow(20px 40px 40px #333);
+            }
+            #tilecontainer {
+                display: grid;
+                grid-template-columns: repeat(4, 80px);
+                width: 320px;
+                margin:auto;
+            }
+            .tile {
+                width: 64px;
+                height: 64px;
+                background-color: #333;
+                display: inline-block;
+                margin: 8px;
+            }
+            .gray {
+                background-color: #555;
+            }
+
+            .shape {
+                width: 32px;
+                height: 32px;
+                margin: auto;
+                margin-top: 16px;
+            }
+            .circle {
+                border-radius: 100%;
+                background-color: red;
+            }
+            .triangle {
+                width: 0; 
+                height: 0; 
+                border-left: 15px solid transparent;
+                border-right: 15px solid transparent;
+                border-top: 30px solid #009999;
+            }
+            .square {
+                background-color: #6666FF;
+            }
+            .star {
+                width: 0; 
+                height: 0; 
+                border-left: 5px solid transparent;
+                border-right: 5px solid transparent;
+                border-bottom: 15px solid yellow;
+                margin-top: 10px;
+            }
+            .star::before, .star::after {
+                content: "";
+                width: 0; 
+                height: 0; 
+                border-left: 20px solid transparent;
+                border-right: 20px solid transparent;
+                border-bottom: 14px solid yellow;
+                transform: rotate(-35deg);
+                margin-left: -20px;
+                margin-top: 14px;
+                position: absolute;
+            }
+            .star::after {  
+                transform: rotate(35deg);
+            }
+            .crescent{
+                border-radius: 100%;
+                background-color: magenta;
+                margin-left: 20px;
+            }
+            .crescent::after {
+                content: "";
+                width: 25px;
+                height: 25px;
+                border-radius: 100%;
+                background-color: #333;
+                margin-left: 12px;
+                position: absolute;
+            }
+            .plus {
+                width: 32px;
+                height: 10px;
+                margin-top: 28px;
+                background-color: #44FF44;
+            }
+            .plus::after{
+                content: "";
+                width: 10px;
+                height: 32px;
+                background-color: #44FF44;
+                position: absolute;
+                margin-left: 11px;
+                margin-top: -11px;
+            }
+        </style>
+        <div class="hand" id="face"></div>
+        <div class="hand" id="hourhand">
+            <div id="arrow"></div>
+        </div>
+        <div class="hand" id="minutehand">
+            <div id="arrow"></div>
+        </div>
+        <div class="hand" id="secondhand">
+            <script>
+
+            </script>
+        </div>
+        <div id="dot"></div>
+        <p id="txt">Don't get bored now...</p>
+        <!--Game-->
+        <div id="tilecontainer"></div>
+        <script>
+
+            //Note form = ['C#', 1/4, 4], [note, length, octave];
+            
+            const notes = [-9,-7,-5,-2,-12]
+            
+            getPitch = function(note, octave) {
+                return Math.pow(2, (octave - 4) + note / 12) * 440;
+            }
+            
+            parse = (arr, n) => {
+                return arr.map((note) => ({pitch: this.getPitch(note, 4), length: 1/(!n?4:8)}));
+            }
+            
+            class Envelope {
+                constructor(attack, decay, sustain, release) {
+                    this.attack = attack * sampleRate;
+                    this.decay = decay * sampleRate;
+                    this.sustain = sustain;
+                    this.release = release * sampleRate;
+            
+                    this.attackExp = 1;
+                    this.decayExp = 1;
+                    this.releaseExp = 1;
+                }
+            
+                envelope(time, length) {
+                    this.t = time;
+                    this.l = length;
+                    if(time > length) {
+                        //release
+                        const percentage = (time - length) / this.release;
+                        const y = Math.pow(percentage, this.releaseExp);
+                        return Math.max(this.sustain - y * this.sustain, 0);
+                    } else if(time < this.attack) {
+                        //attack
+                        const percentage = time / this.attack;
+                        return Math.pow(percentage, this.attackExp); 
+                    } else if (time < this.attack + this.decay) {
+                        //decay
+                        const percentage = (time - this.attack) / this.decay;
+                        const amount = Math.pow(percentage, this.decayExp);
+                        return 1 - amount * (1 - this.sustain);
+                    } else {
+                        //sustain
+                        return this.sustain;
+                    }
+                }
+            }
+            
+            const WaveForms = {
+                noise: (time, pitch) => Math.random() * 2 - 1,
+                sin:(time, pitch) => Math.sin(2 * Math.PI * time * pitch),
+                square: (time, pitch) => Math.sign(WaveForms.sin(time, pitch)),
+                saw: (time, pitch) => {
+                    const waveLength = 1 / pitch;
+                    const leftover = time % waveLength;
+                    const percentage = leftover / waveLength;
+                    const wave = percentage * 2 - 1;
+                    return wave;
+                },
+                triangle: (time, pitch) => Math.abs(WaveForms.saw(time, pitch)) * 2 - 1
+            }
+            
+            let multiplier;
+            
+            class Oscillator {
+                constructor(waveForm, buffer, volume) {
+                    this.waveForm = waveForm;
+                    this.buffer = buffer;
+                    this.volume = volume;
+                }
+            
+                play(pitch, offset, length, envelope) {
+            
+                    let release = envelope.release || 0;
+            
+                    let end = this.buffer.length;
+                    if(offset !== undefined && length !== undefined)
+                        end = Math.min(this.buffer.length, (offset + length + release) * sampleRate);
+            
+                    for(let i = offset * sampleRate || 0; i < end; i++) {
+                        const time = i / sampleRate;
+            
+                        const amp = this.waveForm(time, pitch);
+            
+                        multiplier = envelope.envelope(i - offset * sampleRate, length * sampleRate);
+                        const finalAmp = amp * multiplier * this.volume; 
+                        this.buffer[i] = finalAmp + this.buffer[i] * 0.8;
+                    }
+                }
+            
+                playNotes(notes, tempo, envelope, offset, n) {
+            
+                    const barLengthInSeconds = (4 * 60) / (tempo || 120);
+                    const noteObjects = parse(twinkleTwinkle, n);
+            
+                    function isRest(noteObject) {
+                        return isNaN(noteObject.pitch);
+                    }
+            
+                    let totalOffset = offset || 0;
+            
+                    for(const noteObject of noteObjects) {        
+                        if(!isRest(noteObject)) {
+                            this.play(noteObject.pitch, totalOffset, noteObject.length * barLengthInSeconds, envelope);
+                        }
+                        totalOffset += noteObject.length * barLengthInSeconds
+                    }
+            
+                }
+            }
+            
+            const sampleRate = 44100;
+            
+            let twinkleTwinkle;
+            
+            function audio(n) {
+                if(!n) {
+                    twinkleTwinkle = [-12];
+                    for(let i = 0; i < 6; i++) {
+                        twinkleTwinkle.push(notes[Math.floor(Math.random()*5)]);
+                    }
+                } else {
+                    twinkleTwinkle = new Array(20).fill(12);
+                }
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const myArrayBuffer = audioCtx.createBuffer(2, sampleRate * 30, sampleRate);
+                
+                for(var channel = 0; channel < myArrayBuffer.numberOfChannels; channel++) {
+                    const bufferingChannel = myArrayBuffer.getChannelData(channel);
+                    
+                    //noise(bufferingChannel);
+                    const osc = new Oscillator(!n?WaveForms.triangle:WaveForms.square, bufferingChannel, !n?0.2:0.1);
+                    const envelope = new Envelope(0.02, !n?0.32:0.1, 0, 0);
+            
+                    osc.playNotes(twinkleTwinkle, 180, envelope, n);
+                }
+                var source = audioCtx.createBufferSource();
+                source.buffer = myArrayBuffer;
+            
+                var gainNode = audioCtx.createGain();
+                gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
+                source.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                source.start();
+            }
+        </script>
+        <script>
+            const getElem = (a)=>document.getElementById(a)
+            const body = document.body
+            const setProperty = (a, prop, val) => a.style.setProperty(prop, val) 
+
+            alert("Only one minute left to recess. Try not to fall asleep! Memorize and click on the symbols. Wrong answers and looking at the solution too long will tire you!")
+            const PI = 3.14159
+            for(let i = 1; i <= 12; i++) {
+                const p = document.createElement("P")
+                const t = document.createTextNode(i);
+                p.appendChild(t)
+                p.classList.add("numbers");
+                const x = Math.cos((i-3)*PI/6) * 200;
+                const y = Math.sin((i-3)*PI/6) * 200;
+                setProperty(p, "transform", "translate("+x+"px,"+y+"px)")
+                body.appendChild(p);
+            }
+
+            let rot = 0
+            let b = 255;
+            let won = false;
+            setInterval(() => {
+                rot+=6
+                setProperty(getElem("secondhand"), "transform", "rotate("+rot+"deg)")
+                if(rot == 360) {
+                    won=true;
+                    audio(1)
+                    reset()
+                    closeAll();
+                    show();
+                    const sb = b;
+                    setTimeout(()=>alert("Recess!! You won and were only " + Math.floor((255-sb)/2.55) + "% fatigued"), 3000);
+                    b = 255;
+                }
+            }, 1000)
+            let alerted = 0;
+            let showing = true;
+            setInterval(() => {
+                setProperty(getElem("face"), "background-color", "rgba("+b+","+b+","+b+",1)");
+                setProperty(body, "background-color", "rgba("+b+","+b+","+b+",1)");
+                if(won) return;
+
+                if(showing)
+                    b-=3
+                b-=1.5;
+                if(b <= 0 && !alerted) {
+                    alerted = 1;
+                    alert("zzzzzz. You fell asleep");
+                    location.reload();
+                }
+                b=Math.min(255,b);
+            }, 100)
+            txts = ["Don't get bored now...", "Just focus...", "Only few more seconds!", "Don't fall asleep!"]
+            shapes = ["circle", "triangle", "square", "star", "crescent", "plus"]
+            const ds = [];
+            const randomize=()=>{
+                shapemap = shapes.concat(shapes);
+                shapemap=shapemap.map(v=>({v,s:Math.random()})).sort((a,b)=>a.s-b.s).map(({v})=>v);
+            }
+            randomize();
+            let opened = new Array(12).fill({lock:0, shape: null});
+            let openedShape = {i:0,n:""};
+            reset=()=>opened.forEach(n=>n.lock=0)
+            openedAmt=(l)=>{
+                return opened.filter(n=>!!n.shape&&(l?!n.lock:1)).length;
+            }
+            const openTile=(d,i,s)=>{
+                const shape = document.createElement("DIV")
+                d.appendChild(shape);
+                shape.classList.add("shape", shapemap[i])
+                opened[i]={lock:0, shape};
+                if(!s&&openedShape.n==shapemap[i]) {
+                    b+=10
+                    opened[i].lock=1
+                    opened[openedShape.i].lock=1
+                    openedShape.n=null
+                    if(openedAmt(0)>11) {
+                        b+=150;
+                        audio();
+                        reset()
+                        closeAll()
+                        randomize()
+                        show()
+                    }
+                }
+                else if(!s){
+                    if(openedShape.n) {
+                        b-=30
+                    }
+                    openedShape = {i,n:shapemap[i]};
+                }
+            }
+            show=()=>{
+                for(let i = 0; i < 12; i++) {
+                    openTile(ds[i], i, 1);
+                }
+                showing = true;
+            }
+            const nullify=(v)=>{
+                v.shape && v.shape.remove();
+                v.shape=null;
+            }
+            const closeAll=()=>{
+                opened.map(v=>{!!v && !v.lock && nullify(v)});
+                openedShape="";
+                showing = false;
+            }
+            for(let i = 0; i < 12; i++) {
+                const d = document.createElement("DIV")
+                d.classList.add("tile")
+                ds.push(d);
+                d.onclick = () => {
+                    if(won)return;
+                    if(!opened[i].shape) {
+                        if(openedAmt(1)>1)
+                            closeAll();
+                        openTile(d,i);
+                        getElem("txt").innerHTML = txts[Math.floor(Math.random()*4)];
+                    }else if(!opened[i].lock && openedAmt(1)>0) {
+                        closeAll()
+                        openTile(d,i);
+                    }
+                }
+                getElem("tilecontainer").appendChild(d)
+            }
+            show();
+        </script>
+    </body>
+</html>
